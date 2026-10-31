@@ -17,8 +17,8 @@ MANAGE="$PROJECT_ROOT/backend/manage.py"
 LOG_DIR="$PROJECT_ROOT/logs"
 LOG_FILE="$LOG_DIR/carbon_collector.log"
 
-# Collection interval: 2 minutes (120 seconds)
-INTERVAL=120
+# Collection interval: 15 minutes (900 seconds)
+INTERVAL=900
 INTERVAL_MINUTES=$((INTERVAL / 60))
 
 # Create log directory if it does not exist
