@@ -1,0 +1,26 @@
+# Web framework
+Django>=5.2,<5.3
+djangorestframework>=3.15
+django-cors-headers>=4.6
+
+# Database
+psycopg[binary]>=3.2
+
+# Data collection
+requests>=2.32
+python-dotenv>=1.0
+
+# Data processing
+pandas>=2.2
+numpy>=1.26
+
+# Machine learning
+scikit-learn>=1.5
+joblib>=1.4
+
+# Monitoring
+prometheus-client>=0.21
+
+# Production server
+gunicorn>=23.0
+whitenoise>=6.8
