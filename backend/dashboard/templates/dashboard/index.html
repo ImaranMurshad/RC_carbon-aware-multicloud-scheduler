@@ -1,0 +1,1145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Carbon Scheduler | Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #151e30;
+            --border: #263247;
+            --muted: #94a3b8;
+            --text: #e5edf7;
+            --green: #22c55e;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", sans-serif;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: #101827;
+            border-right: 1px solid var(--border);
+            padding: 28px 18px;
+        }
+
+        .brand {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 38px;
+        }
+
+        .brand i {
+            color: var(--green);
+            margin-right: 8px;
+        }
+
+        .nav-link {
+            color: var(--muted);
+            padding: 12px;
+            border-radius: 9px;
+            margin-bottom: 7px;
+        }
+
+        .nav-link.active,
+        .nav-link:hover {
+            background: #1c2a40;
+            color: white;
+        }
+
+        .main-content {
+            padding: 32px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            height: 100%;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .metric-value {
+            font-size: 29px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .zone-card {
+            border-left: 3px solid var(--green);
+        }
+
+        .zone-value {
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--text);
+            --bs-table-border-color: var(--border);
+            vertical-align: middle;
+        }
+
+        .table thead th {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            margin-right: 7px;
+        }
+
+        .badge-estimated {
+            background: #493719;
+            color: #facc15;
+        }
+
+        .badge-measured {
+            background: #123c2a;
+            color: #4ade80;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        .chart-info {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .refresh-button {
+            background: #1c2a40;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 7px 13px;
+            font-size: 13px;
+        }
+
+        .refresh-button:hover {
+            background: #263a57;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+                border-right: 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .main-content {
+                padding: 20px 14px;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- SIDEBAR -->
+        <aside class="col-md-2 sidebar">
+
+            <div class="brand">
+                <i class="bi bi-globe2"></i>
+                Carbon Scheduler
+            </div>
+
+            <div class="nav flex-column">
+
+                <a class="nav-link active" href="/">
+                    <i class="bi bi-grid me-2"></i>
+                    Overview
+                </a>
+
+                <a class="nav-link" href="#carbon">
+                    <i class="bi bi-lightning me-2"></i>
+                    Carbon Monitoring
+                </a>
+
+                <a class="nav-link" href="#analytics">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Analytics
+                </a>
+
+                <a class="nav-link" href="#infrastructure">
+                    <i class="bi bi-cloud me-2"></i>
+                    Infrastructure
+                </a>
+
+            </div>
+
+            <div class="mt-5 small muted">
+                MSc Research Project<br>
+                Predictive Carbon-Aware Scheduling
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN DASHBOARD -->
+        <main class="col-md-10 main-content">
+
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        Dashboard Overview
+                    </h3>
+
+                    <div class="muted small">
+                        Multi-cloud carbon monitoring and analytics
+                    </div>
+                </div>
+
+                <div class="small muted">
+                    <span class="status-dot" id="connection-dot"></span>
+                    <span id="connection-status">
+                        Connecting to database...
+                    </span>
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY CARDS -->
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-4">
+                    <div class="panel">
+
+                        <div class="metric-label">
+                            Total Database Readings
+                        </div>
+
+                        <div class="metric-value" id="total-readings">
+                            --
+                        </div>
+
+                        <div class="muted small mt-2">
+                            Stored in PostgreSQL
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <div class="panel">
+
+                        <div class="metric-label">
+                            Monitored Zones
+                        </div>
+
+                        <div class="metric-value" id="total-zones">
+                            --
+                        </div>
+
+                        <div class="muted small mt-2">
+                            Ireland, Germany and France
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <div class="panel">
+
+                        <div class="metric-label">
+                            Last Reading Timestamp
+                        </div>
+
+                        <div class="metric-value fs-5" id="last-updated">
+                            --
+                        </div>
+
+                        <div class="muted small mt-2">
+                            Latest available API reading
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- REGIONAL CARBON INTENSITY -->
+            <section id="carbon" class="mb-4">
+
+                <h5 class="fw-semibold mb-3">
+                    Regional Carbon Intensity
+                </h5>
+
+                <div class="row g-3">
+
+                    <!-- IRELAND -->
+                    <div class="col-md-4">
+
+                        <div class="panel zone-card">
+
+                            <div class="metric-label">
+                                Ireland · IE
+                            </div>
+
+                            <div class="zone-value mt-2" id="value-IE">
+                                --
+                            </div>
+
+                            <div class="muted small">
+                                gCO₂e/kWh
+                            </div>
+
+                            <div class="small mt-3" id="status-IE">
+                                Waiting for data
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- GERMANY -->
+                    <div class="col-md-4">
+
+                        <div class="panel zone-card">
+
+                            <div class="metric-label">
+                                Germany · DE
+                            </div>
+
+                            <div class="zone-value mt-2" id="value-DE">
+                                --
+                            </div>
+
+                            <div class="muted small">
+                                gCO₂e/kWh
+                            </div>
+
+                            <div class="small mt-3" id="status-DE">
+                                Waiting for data
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FRANCE -->
+                    <div class="col-md-4">
+
+                        <div class="panel zone-card">
+
+                            <div class="metric-label">
+                                France · FR
+                            </div>
+
+                            <div class="zone-value mt-2" id="value-FR">
+                                --
+                            </div>
+
+                            <div class="muted small">
+                                gCO₂e/kWh
+                            </div>
+
+                            <div class="small mt-3" id="status-FR">
+                                Waiting for data
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- HISTORICAL ANALYTICS -->
+            <section id="analytics" class="mb-4">
+
+                <div class="panel">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+
+                        <div>
+
+                            <h5 class="fw-semibold mb-1">
+                                Historical Carbon Intensity
+                            </h5>
+
+                            <div class="muted small">
+                                Actual observations collected from Electricity Maps
+                            </div>
+
+                        </div>
+
+                        <button
+                            class="refresh-button"
+                            onclick="loadCarbonData()"
+                        >
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Refresh
+                        </button>
+
+                    </div>
+
+
+                    <div class="chart-info mb-3">
+                        Unit: gCO₂e/kWh · Source: PostgreSQL historical readings
+                    </div>
+
+
+                    <div class="chart-container">
+
+                        <canvas id="carbonChart"></canvas>
+
+                    </div>
+
+
+                    <div class="chart-info mt-3">
+                        Missing timestamps are shown as gaps.
+                        No artificial readings or interpolated values are generated.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RECENT READINGS TABLE -->
+            <section class="mb-4">
+
+                <div class="panel">
+
+                    <h5 class="fw-semibold mb-3">
+                        Recent Carbon Readings
+                    </h5>
+
+                    <div class="table-responsive">
+
+                        <table class="table">
+
+                            <thead>
+
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Carbon Intensity</th>
+                                    <th>Timestamp</th>
+                                    <th>Data Type</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="readings-table">
+
+                                <tr>
+                                    <td colspan="4" class="text-center muted">
+                                        Loading database readings...
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- CLOUD INFRASTRUCTURE -->
+            <section id="infrastructure">
+
+                <h5 class="fw-semibold mb-3">
+                    Cloud Infrastructure
+                </h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <div class="panel">
+
+                            <i class="bi bi-cloud-fill text-warning fs-3"></i>
+
+                            <h6 class="mt-3">
+                                AWS
+                            </h6>
+
+                            <div class="muted small">
+                                Cloud environment
+                            </div>
+
+                            <span class="badge bg-secondary mt-3">
+                                Integration pending
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="panel">
+
+                            <i class="bi bi-cloud-fill text-info fs-3"></i>
+
+                            <h6 class="mt-3">
+                                Azure Simulation
+                            </h6>
+
+                            <div class="muted small">
+                                Local Kind cluster
+                            </div>
+
+                            <span class="badge bg-secondary mt-3">
+                                Monitoring pending
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="panel">
+
+                            <i class="bi bi-cloud-fill text-success fs-3"></i>
+
+                            <h6 class="mt-3">
+                                GCP Simulation
+                            </h6>
+
+                            <div class="muted small">
+                                Local Kind cluster
+                            </div>
+
+                            <span class="badge bg-secondary mt-3">
+                                Monitoring pending
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- FOOTER -->
+            <footer class="muted small text-center mt-5">
+
+                Carbon-Aware Multi-Cloud Scheduler · Research Dashboard
+
+            </footer>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- DASHBOARD JAVASCRIPT -->
+<script>
+
+    let carbonChart = null;
+
+    const zoneNames = {
+        IE: "Ireland",
+        DE: "Germany",
+        FR: "France"
+    };
+
+
+    const zoneColors = {
+        IE: "#22c55e",
+        DE: "#3b82f6",
+        FR: "#a78bfa"
+    };
+
+
+    // FORMAT TIMESTAMP
+    function formatDate(value) {
+
+        if (!value) {
+            return "Unavailable";
+        }
+
+        return new Date(value).toLocaleString();
+
+    }
+
+
+    // LOAD CARBON DATA FROM DJANGO API
+    async function loadCarbonData() {
+
+        const connectionStatus =
+            document.getElementById("connection-status");
+
+        const connectionDot =
+            document.getElementById("connection-dot");
+
+
+        try {
+
+            const response = await fetch("/api/carbon/");
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Carbon API returned HTTP " + response.status
+                );
+
+            }
+
+
+            const result = await response.json();
+
+            const readings = result.readings || [];
+
+
+            connectionStatus.textContent =
+                "PostgreSQL connected";
+
+            connectionDot.style.background =
+                "#22c55e";
+
+
+            // TOTAL DATABASE READINGS
+            document.getElementById("total-readings").textContent =
+                result.count ?? readings.length;
+
+
+            // FIND LATEST READING FOR EACH ZONE
+            const latestByZone = {};
+
+
+            readings.forEach(reading => {
+
+                if (
+                    !latestByZone[reading.zone] ||
+                    new Date(reading.timestamp) >
+                    new Date(latestByZone[reading.zone].timestamp)
+                ) {
+
+                    latestByZone[reading.zone] = reading;
+
+                }
+
+            });
+
+
+            const zones = ["IE", "DE", "FR"];
+
+
+            const availableZones = zones.filter(
+                zone => latestByZone[zone]
+            );
+
+
+            document.getElementById("total-zones").textContent =
+                availableZones.length;
+
+
+            // UPDATE REGIONAL CARDS
+            let latestTimestamp = null;
+
+
+            zones.forEach(zone => {
+
+                const reading = latestByZone[zone];
+
+
+                const valueElement =
+                    document.getElementById("value-" + zone);
+
+                const statusElement =
+                    document.getElementById("status-" + zone);
+
+
+                if (!reading) {
+
+                    valueElement.textContent = "--";
+
+                    statusElement.textContent =
+                        "No readings available";
+
+                    return;
+
+                }
+
+
+                valueElement.textContent =
+                    Number(reading.carbon_intensity).toFixed(2);
+
+
+                statusElement.textContent =
+                    reading.is_estimated
+                        ? "Estimated API reading"
+                        : "Measured API reading";
+
+
+                if (
+                    !latestTimestamp ||
+                    new Date(reading.timestamp) >
+                    new Date(latestTimestamp)
+                ) {
+
+                    latestTimestamp = reading.timestamp;
+
+                }
+
+            });
+
+
+            document.getElementById("last-updated").textContent =
+                formatDate(latestTimestamp);
+
+
+            // UPDATE HISTORICAL CHART
+            updateHistoricalChart(readings);
+
+
+            // UPDATE RECENT READINGS
+            updateTable(readings);
+
+
+        } catch (error) {
+
+            connectionStatus.textContent =
+                "Connection error";
+
+            connectionDot.style.background =
+                "#ef4444";
+
+
+            console.error(
+                "Dashboard error:",
+                error
+            );
+
+
+            document.getElementById("readings-table").innerHTML =
+
+                `<tr>
+                    <td colspan="4" class="text-danger">
+                        Unable to load carbon readings.
+                        Check the Django server and API.
+                    </td>
+                </tr>`;
+
+        }
+
+    }
+
+
+    // HISTORICAL CARBON INTENSITY LINE CHART
+    function updateHistoricalChart(readings) {
+
+
+        // SORT READINGS BY TIME
+        const sortedReadings = [...readings].sort(
+
+            (a, b) =>
+
+                new Date(a.timestamp) -
+                new Date(b.timestamp)
+
+        );
+
+
+        // UNIQUE TIMESTAMPS
+        const timestamps = [
+
+            ...new Set(
+
+                sortedReadings.map(
+                    reading => reading.timestamp
+                )
+
+            )
+
+        ];
+
+
+        // FORMAT TIMESTAMPS FOR CHART
+        const labels = timestamps.map(
+
+            timestamp =>
+
+                new Date(timestamp).toLocaleString()
+
+        );
+
+
+        // REGIONAL DATASETS
+        const zones = ["IE", "DE", "FR"];
+
+
+        const datasets = zones.map(zone => {
+
+
+            const zoneReadings = sortedReadings.filter(
+
+                reading => reading.zone === zone
+
+            );
+
+
+            // MAP EACH READING TO ITS TIMESTAMP
+            const readingsByTimestamp = {};
+
+
+            zoneReadings.forEach(reading => {
+
+                readingsByTimestamp[reading.timestamp] =
+
+                    Number(reading.carbon_intensity);
+
+            });
+
+
+            return {
+
+                label: zoneNames[zone],
+
+                data: timestamps.map(timestamp =>
+
+                    Object.prototype.hasOwnProperty.call(
+                        readingsByTimestamp,
+                        timestamp
+                    )
+                        ? readingsByTimestamp[timestamp]
+                        : null
+
+                ),
+
+                borderColor: zoneColors[zone],
+
+                backgroundColor: zoneColors[zone],
+
+                borderWidth: 2,
+
+                pointRadius: 4,
+
+                pointHoverRadius: 7,
+
+                tension: 0.3,
+
+                spanGaps: false
+
+            };
+
+        });
+
+
+        const canvas =
+            document.getElementById("carbonChart");
+
+
+        // DESTROY PREVIOUS CHART
+        if (carbonChart) {
+
+            carbonChart.destroy();
+
+        }
+
+
+        // CREATE HISTORICAL LINE CHART
+        carbonChart = new Chart(canvas, {
+
+            type: "line",
+
+
+            data: {
+
+                labels: labels,
+
+                datasets: datasets
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+
+                interaction: {
+
+                    intersect: false,
+
+                    mode: "index"
+
+                },
+
+
+                plugins: {
+
+                    legend: {
+
+                        position: "top",
+
+                        labels: {
+
+                            color: "#e5edf7",
+
+                            usePointStyle: true,
+
+                            padding: 20
+
+                        }
+
+                    },
+
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: function(context) {
+
+
+                                if (context.raw === null) {
+
+                                    return context.dataset.label +
+                                        ": No reading";
+
+                                }
+
+
+                                return context.dataset.label +
+
+                                    ": " +
+
+                                    context.raw +
+
+                                    " gCO₂e/kWh";
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+
+                scales: {
+
+                    x: {
+
+                        title: {
+
+                            display: true,
+
+                            text: "Observation timestamp",
+
+                            color: "#94a3b8"
+
+                        },
+
+
+                        ticks: {
+
+                            color: "#94a3b8",
+
+                            maxRotation: 45,
+
+                            minRotation: 0,
+
+                            autoSkip: true,
+
+                            maxTicksLimit: 10
+
+                        },
+
+
+                        grid: {
+
+                            color: "#263247"
+
+                        }
+
+                    },
+
+
+                    y: {
+
+                        beginAtZero: true,
+
+
+                        title: {
+
+                            display: true,
+
+                            text: "Carbon intensity (gCO₂e/kWh)",
+
+                            color: "#94a3b8"
+
+                        },
+
+
+                        ticks: {
+
+                            color: "#94a3b8"
+
+                        },
+
+
+                        grid: {
+
+                            color: "#263247"
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    // UPDATE RECENT READINGS TABLE
+    function updateTable(readings) {
+
+
+        const table =
+            document.getElementById("readings-table");
+
+
+        if (!readings.length) {
+
+            table.innerHTML =
+
+                `<tr>
+                    <td colspan="4" class="text-center muted">
+                        No readings have been collected yet.
+                    </td>
+                </tr>`;
+
+            return;
+
+        }
+
+
+        table.innerHTML = readings.slice(0, 15).map(reading => {
+
+
+            const dataType = reading.is_estimated
+
+                ? '<span class="badge badge-estimated">Estimated</span>'
+
+                : '<span class="badge badge-measured">Measured</span>';
+
+
+            const zoneName =
+                zoneNames[reading.zone] || reading.zone;
+
+
+            return `
+
+                <tr>
+
+                    <td>${zoneName}</td>
+
+                    <td>
+                        ${Number(reading.carbon_intensity).toFixed(2)}
+                        gCO₂e/kWh
+                    </td>
+
+                    <td>
+                        ${formatDate(reading.timestamp)}
+                    </td>
+
+                    <td>
+                        ${dataType}
+                    </td>
+
+                </tr>
+
+            `;
+
+
+        }).join("");
+
+    }
+
+
+    // INITIAL LOAD
+    loadCarbonData();
+
+
+    // REFRESH DASHBOARD EVERY 60 SECONDS
+    setInterval(loadCarbonData, 60000);
+
+
+</script>
+
+</body>
+</html>
