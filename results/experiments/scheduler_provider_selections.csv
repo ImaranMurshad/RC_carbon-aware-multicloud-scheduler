@@ -1,0 +1,7 @@
+strategy,AWS,AZURE,GCP
+carbon_only,0,0,161
+cost_only,0,0,161
+persistence_predictive,67,0,94
+random_forest_predictive,66,0,95
+reactive_carbon,0,0,161
+round_robin,54,54,53

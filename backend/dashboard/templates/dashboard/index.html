@@ -210,7 +210,22 @@
 
                 <a class="nav-link" href="#analytics">
                     <i class="bi bi-graph-up me-2"></i>
-                    Analytics
+                    Carbon Analytics
+                </a>
+
+                <a class="nav-link" href="#forecasting">
+                    <i class="bi bi-cpu me-2"></i>
+                    ML Forecasting
+                </a>
+
+                <a class="nav-link" href="#scheduling">
+                    <i class="bi bi-diagram-3 me-2"></i>
+                    Scheduling Experiments
+                </a>
+
+                <a class="nav-link" href="#provider-analytics">
+                    <i class="bi bi-cloud-check me-2"></i>
+                    Provider Analysis
                 </a>
 
                 <a class="nav-link" href="#infrastructure">
@@ -421,7 +436,7 @@
                             </h5>
 
                             <div class="muted small">
-                                Actual observations collected from Electricity Maps
+                                Historical carbon-intensity readings (measured and estimated)
                             </div>
 
                         </div>
@@ -499,6 +514,110 @@
 
                 </div>
 
+            </section>
+
+
+            <!-- ML FORECASTING ANALYTICS -->
+            <section id="forecasting" class="mb-4">
+                <div class="panel">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <div>
+                            <h5 class="fw-semibold mb-1">ML Forecasting Evaluation</h5>
+                            <div class="muted small">
+                                Four-fold expanding-window rolling validation · 161 validation records per zone and model
+                            </div>
+                        </div>
+                        <span class="badge bg-secondary" id="ml-api-status">Loading results...</span>
+                    </div>
+
+                    <div class="chart-info mb-3">
+                        Mean fold MAE in gCO₂e/kWh. Lower values indicate smaller average absolute forecast errors.
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+
+                    <h6 class="fw-semibold mt-4 mb-2">Model performance by region</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Model</th>
+                                    <th>Mean fold MAE</th>
+                                    <th>Mean fold RMSE</th>
+                                    <th>Validation records</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-table">
+                                <tr><td colspan="5" class="text-center muted">Loading forecasting results...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="chart-info mt-3">
+                        Research finding: the Persistence baseline achieved lower mean fold MAE than the Random Forest all-features model in all three zones in this rolling-validation evaluation. Results are reported as evaluated; no claim of ML superiority is made.
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCHEDULING STRATEGY ANALYTICS -->
+            <section id="scheduling" class="mb-4">
+                <div class="panel">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <div>
+                            <h5 class="fw-semibold mb-1">Scheduling Strategy Comparison</h5>
+                            <div class="muted small">
+                                Six strategies · 161 historical decision timestamps per strategy
+                            </div>
+                        </div>
+                        <span class="badge bg-secondary" id="experiment-api-status">Loading results...</span>
+                    </div>
+
+                    <div class="chart-info mb-3">
+                        Mean selected-region carbon intensity proxy (gCO₂e/kWh). This is a regional grid-intensity proxy, not measured workload emissions.
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="strategyChart"></canvas>
+                    </div>
+
+                    <h6 class="fw-semibold mt-4 mb-2">Strategy metrics</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Strategy</th>
+                                    <th>Decisions</th>
+                                    <th>Mean carbon proxy</th>
+                                    <th>Mean assumed cost/hour</th>
+                                    <th>Total assumed cost</th>
+                                    <th>Mean assumed latency</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-table">
+                                <tr><td colspan="6" class="text-center muted">Loading experiment results...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="chart-info mt-3">
+                        Important: provider costs, latency and capacity are illustrative assumptions used by the simulation. Total assumed cost treats each decision as a one-hour interval. These figures are not actual provider invoices or measured application latency.
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROVIDER SELECTION ANALYTICS -->
+            <section id="provider-analytics" class="mb-4">
+                <div class="panel">
+                    <h5 class="fw-semibold mb-1">Provider Selection Analysis</h5>
+                    <div class="muted small mb-3">
+                        Number of decisions assigned to AWS, Azure and GCP by scheduling strategy
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="providerChart"></canvas>
+                    </div>
+                    <div class="chart-info mt-3">
+                        Provider mapping used in the experiment: AWS → IE, Azure → DE, GCP → FR. Azure was not selected by the two predictive weighted strategies under the configured assumptions.
+                    </div>
+                </div>
             </section>
 
 
@@ -602,6 +721,9 @@
 <script>
 
     let carbonChart = null;
+    let forecastChart = null;
+    let strategyChart = null;
+    let providerChart = null;
 
     const zoneNames = {
         IE: "Ireland",
@@ -1131,8 +1253,177 @@
     }
 
 
+    // LOAD ML ROLLING-VALIDATION RESULTS
+    async function loadForecastingResults() {
+        const status = document.getElementById("ml-api-status");
+        const table = document.getElementById("forecast-table");
+
+        try {
+            const response = await fetch("/api/ml/forecasting/");
+            if (!response.ok) throw new Error("ML API returned HTTP " + response.status);
+
+            const payload = await response.json();
+            if (payload.status !== "success") throw new Error(payload.message || "ML results unavailable");
+
+            const rows = payload.results || [];
+            status.textContent = "Results loaded";
+            status.className = "badge bg-success";
+
+            const zones = ["IE", "DE", "FR"];
+            const selectedModels = [
+                { key: "persistence", label: "Persistence" },
+                { key: "random_forest_all_features", label: "Random Forest (all features)" },
+                { key: "gradient_boosting_all_features", label: "Gradient Boosting (all features)" }
+            ];
+
+            const datasets = selectedModels.map((model, index) => ({
+                label: model.label,
+                data: zones.map(zone => {
+                    const row = rows.find(item => item.zone === zone && item.model === model.key);
+                    return row ? Number(row.mean_fold_mae) : null;
+                }),
+                backgroundColor: ["#22c55e", "#3b82f6", "#a78bfa"][index],
+                borderRadius: 5
+            }));
+
+            if (forecastChart) forecastChart.destroy();
+            forecastChart = new Chart(document.getElementById("forecastChart"), {
+                type: "bar",
+                data: { labels: zones.map(zone => zoneNames[zone] + " (" + zone + ")"), datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: "#e5edf7" } } },
+                    scales: {
+                        x: { ticks: { color: "#94a3b8" }, grid: { color: "#263247" } },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Mean fold MAE (gCO₂e/kWh)", color: "#94a3b8" },
+                            ticks: { color: "#94a3b8" },
+                            grid: { color: "#263247" }
+                        }
+                    }
+                }
+            });
+
+            table.innerHTML = rows.map(row => `
+                <tr>
+                    <td>${zoneNames[row.zone] || row.zone}</td>
+                    <td>${String(row.model).replaceAll("_", " ")}</td>
+                    <td>${Number(row.mean_fold_mae).toFixed(3)}</td>
+                    <td>${Number(row.mean_fold_rmse).toFixed(3)}</td>
+                    <td>${Number(row.total_validation_records)}</td>
+                </tr>
+            `).join("");
+        } catch (error) {
+            status.textContent = "Unavailable";
+            status.className = "badge bg-danger";
+            table.innerHTML = '<tr><td colspan="5" class="text-danger">Unable to load ML forecasting results.</td></tr>';
+            console.error("Forecasting API error:", error);
+        }
+    }
+
+
+    // LOAD SCHEDULING EXPERIMENT RESULTS
+    async function loadExperimentResults() {
+        const status = document.getElementById("experiment-api-status");
+        const table = document.getElementById("strategy-table");
+
+        try {
+            const response = await fetch("/api/experiments/results/");
+            if (!response.ok) throw new Error("Experiment API returned HTTP " + response.status);
+
+            const payload = await response.json();
+            if (payload.status !== "success") throw new Error("Experiment results unavailable");
+
+            const summary = payload.summary || [];
+            const selections = payload.provider_selections || [];
+
+            status.textContent = "Results loaded";
+            status.className = "badge bg-success";
+
+            const strategyLabels = {
+                carbon_only: "Carbon-only",
+                cost_only: "Cost-only",
+                reactive_carbon: "Reactive carbon",
+                random_forest_predictive: "Random Forest predictive",
+                persistence_predictive: "Persistence predictive",
+                round_robin: "Round robin"
+            };
+
+            if (strategyChart) strategyChart.destroy();
+            strategyChart = new Chart(document.getElementById("strategyChart"), {
+                type: "bar",
+                data: {
+                    labels: summary.map(row => strategyLabels[row.strategy] || row.strategy),
+                    datasets: [{
+                        label: "Mean actual regional carbon-intensity proxy",
+                        data: summary.map(row => Number(row.mean_actual_carbon_intensity)),
+                        backgroundColor: "#22c55e",
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: "#e5edf7" } } },
+                    scales: {
+                        x: { ticks: { color: "#94a3b8" }, grid: { color: "#263247" } },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "gCO₂e/kWh (regional proxy)", color: "#94a3b8" },
+                            ticks: { color: "#94a3b8" },
+                            grid: { color: "#263247" }
+                        }
+                    }
+                }
+            });
+
+            table.innerHTML = summary.map(row => `
+                <tr>
+                    <td>${strategyLabels[row.strategy] || row.strategy}</td>
+                    <td>${Number(row.decision_count)}</td>
+                    <td>${Number(row.mean_actual_carbon_intensity).toFixed(2)}</td>
+                    <td>€${Number(row.mean_assumed_cost_per_hour).toFixed(3)}</td>
+                    <td>€${Number(row.total_assumed_cost_eur).toFixed(2)}</td>
+                    <td>${Number(row.mean_assumed_latency_ms).toFixed(1)} ms</td>
+                </tr>
+            `).join("");
+
+            if (providerChart) providerChart.destroy();
+            providerChart = new Chart(document.getElementById("providerChart"), {
+                type: "bar",
+                data: {
+                    labels: selections.map(row => strategyLabels[row.strategy] || row.strategy),
+                    datasets: [
+                        { label: "AWS", data: selections.map(row => Number(row.AWS)), backgroundColor: "#f59e0b" },
+                        { label: "Azure", data: selections.map(row => Number(row.AZURE)), backgroundColor: "#3b82f6" },
+                        { label: "GCP", data: selections.map(row => Number(row.GCP)), backgroundColor: "#22c55e" }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, ticks: { color: "#94a3b8" }, grid: { color: "#263247" } },
+                        y: { stacked: true, beginAtZero: true, ticks: { color: "#94a3b8" }, grid: { color: "#263247" } }
+                    },
+                    plugins: { legend: { labels: { color: "#e5edf7" } } }
+                }
+            });
+        } catch (error) {
+            status.textContent = "Unavailable";
+            status.className = "badge bg-danger";
+            table.innerHTML = '<tr><td colspan="6" class="text-danger">Unable to load scheduling experiment results.</td></tr>';
+            console.error("Experiment API error:", error);
+        }
+    }
+
+
     // INITIAL LOAD
     loadCarbonData();
+    loadForecastingResults();
+    loadExperimentResults();
 
 
     // REFRESH DASHBOARD EVERY 60 SECONDS
