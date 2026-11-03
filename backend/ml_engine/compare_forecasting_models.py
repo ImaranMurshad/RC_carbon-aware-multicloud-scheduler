@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +8,7 @@ from sklearn.ensemble import (
     GradientBoostingRegressor,
 )
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from xgboost import XGBRegressor
 
 
 # ==================================================
@@ -52,6 +52,7 @@ FEATURE_GROUPS = {
         "carbon_3h_ago",
     ],
     "gradient_boosting_all_features": ALL_FEATURES,
+    "xgboost_all_features": ALL_FEATURES,
 }
 
 
@@ -192,6 +193,19 @@ def build_model(model_name):
             min_samples_leaf=2,
             loss="huber",
             random_state=RANDOM_STATE,
+        )
+
+    if model_name == "xgboost_all_features":
+
+        return XGBRegressor(
+            n_estimators=200,
+            learning_rate=0.05,
+            max_depth=3,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            objective="reg:squarederror",
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
         )
 
     raise ValueError(f"Unknown model: {model_name}")

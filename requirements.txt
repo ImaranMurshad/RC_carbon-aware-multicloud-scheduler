@@ -24,3 +24,9 @@ prometheus-client>=0.21
 # Production server
 gunicorn>=23.0
 whitenoise>=6.8
+
+# Forecasting (added Day 1)
+xgboost>=2.1
+
+# HTTP / latency measurement
+requests>=2.32

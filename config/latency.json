@@ -1,0 +1,30 @@
+{
+  "_description": "Measured HTTPS round-trip latency from the client machine.",
+  "measured": true,
+  "measured_at": "2026-11-03T20:18:53.430230+00:00",
+  "latency_ms": {
+    "AWS": 33.7,
+    "AZURE": 53.8,
+    "GCP": 51.4
+  },
+  "detail": {
+    "AWS": {
+      "endpoint": "https://ec2.eu-west-1.amazonaws.com/ping",
+      "samples": 50,
+      "median_ms": 33.7,
+      "p95_ms": 50.4
+    },
+    "AZURE": {
+      "endpoint": "https://germanywestcentral.api.cognitive.microsoft.com/",
+      "samples": 50,
+      "median_ms": 53.8,
+      "p95_ms": 70.6
+    },
+    "GCP": {
+      "endpoint": "https://europe-west9-run.googleapis.com/",
+      "samples": 50,
+      "median_ms": 51.4,
+      "p95_ms": 72.6
+    }
+  }
+}

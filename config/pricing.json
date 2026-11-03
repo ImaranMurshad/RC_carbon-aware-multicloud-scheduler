@@ -1,0 +1,37 @@
+{
+  "_description": "On-demand Linux prices for a comparable 2 vCPU / 4 GB general-purpose instance. USD per hour, no storage/egress. Gathered 2026-11-02 from public third-party mirrors of the providers' price lists; re-check against each provider's official calculator before final submission.",
+  "currency": "USD",
+  "retrieved": "2026-11-02",
+  "providers": {
+    "AWS": {
+      "region": "eu-west-1 (Ireland)",
+      "carbon_zone": "IE",
+      "instance_type": "t3.medium",
+      "vcpu": 2,
+      "memory_gb": 4,
+      "price_per_hour_usd": 0.0456,
+      "source": "aws-pricing.com / doit.com / devzero.io (consistent)",
+      "verified_against_official": false
+    },
+    "AZURE": {
+      "region": "Germany West Central",
+      "carbon_zone": "DE",
+      "instance_type": "Standard_B2s",
+      "vcpu": 2,
+      "memory_gb": 4,
+      "price_per_hour_usd": 0.048,
+      "source": "azurespeed.com / devzero.io (Azure Retail Prices API mirror)",
+      "verified_against_official": false
+    },
+    "GCP": {
+      "region": "europe-west9 (Paris)",
+      "carbon_zone": "FR",
+      "instance_type": "e2-medium",
+      "vcpu": 2,
+      "memory_gb": 4,
+      "price_per_hour_usd": 0.0389,
+      "source": "gcloud-compute.com. NOTE: devzero.io lists 0.064 for the same type/region; sources conflict, CONFIRM in the Google Cloud Pricing Calculator.",
+      "verified_against_official": false
+    }
+  }
+}

@@ -7,30 +7,42 @@ __pycache__/
 .venv/
 venv/
 
-# Environment variables and secrets
+# Secrets (NEVER commit)
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.crt
+*_key.pem
+kubeconfig*
+*.kubeconfig
+.aws/
+credentials
 
 # Django
 *.log
+logs/
 db.sqlite3
 staticfiles/
 
-# IDE
+# IDE / OS
 .vscode/
 .idea/
-
-# macOS
 .DS_Store
+__MACOSX/
 
-# Generated datasets
+# Generated datasets (keep datasets/historical/carbon_history.csv)
 datasets/raw/
 datasets/processed/
+datasets/historical/*_backup.csv
 
-# Trained models
-models/*.joblib
-models/*.pkl
+# Trained models (re-created by train_carbon_model.py)
+models/**/*.joblib
+models/**/*.pkl
+
+# Large generated files
+results/eda/interactive_carbon_trends.html
 
 # Test coverage
 .coverage
