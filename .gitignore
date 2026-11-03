@@ -47,4 +47,4 @@ results/eda/interactive_carbon_trends.html
 # Test coverage
 .coverage
 htmlcov/
-.pytest_cache/
+.pytest_cache/results/live/.rr_state
