@@ -59,8 +59,8 @@ WATTS_PER_VCPU = 10.0
 
 # One hour's arrivals. Latency SLAs are in ms (round-trip from the client).
 WORKLOAD_MIX = [
-    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": 20.0},
-    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": 20.0},
+    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": 40.0},
+    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": 40.0},
     {"type": "cpu_bound",  "cpu": 1000, "mem": 512,  "sla_ms": 150.0},
     {"type": "mem_bound",  "cpu": 500,  "mem": 1500, "sla_ms": 150.0},
     {"type": "background", "cpu": 250,  "mem": 256,  "sla_ms": 500.0},
