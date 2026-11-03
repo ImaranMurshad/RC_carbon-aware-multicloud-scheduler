@@ -1,0 +1,10 @@
+{
+  "_description": "Maps each scheduler provider to a kubectl context. Run 'kubectl config get-contexts' to see your context names. Change the AWS value to your k3s context name.",
+  "namespace": "thesis",
+  "image": "python:3.11-alpine",
+  "providers": {
+    "AWS":   {"context": "aws-k3s"},
+    "AZURE": {"context": "kind-azure-sim"},
+    "GCP":   {"context": "kind-gcp-sim"}
+  }
+}

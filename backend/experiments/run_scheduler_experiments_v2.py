@@ -57,10 +57,22 @@ DECISION_INTERVAL_HOURS = 1.0
 # drawn per requested vCPU, including a share of server overhead.
 WATTS_PER_VCPU = 10.0
 
+# The web SLA is derived, not hand-picked: 1.2 x the latency to the nearest
+# region (lowest measured latency). Other workloads have fixed looser SLAs.
+WEB_SLA_FACTOR = 1.2
+
+
+def _web_sla_ms():
+    data = json.loads(LATENCY_FILE.read_text())["latency_ms"]
+    return round(WEB_SLA_FACTOR * min(data.values()), 1)
+
+
+WEB_SLA_MS = _web_sla_ms()
+
 # One hour's arrivals. Latency SLAs are in ms (round-trip from the client).
 WORKLOAD_MIX = [
-    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": 40.0},
-    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": 40.0},
+    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": WEB_SLA_MS},
+    {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": WEB_SLA_MS},
     {"type": "cpu_bound",  "cpu": 1000, "mem": 512,  "sla_ms": 150.0},
     {"type": "mem_bound",  "cpu": 500,  "mem": 1500, "sla_ms": 150.0},
     {"type": "background", "cpu": 250,  "mem": 256,  "sla_ms": 500.0},
@@ -102,6 +114,7 @@ def load_providers():
         }
 
     print("\nProvider configuration")
+    print(f"  web SLA = {WEB_SLA_MS} ms ({WEB_SLA_FACTOR} x lowest latency)")
     print(f"  prices retrieved: {pricing['retrieved']} ({pricing['currency']})")
     print(f"  latency measured: {latency.get('measured', False)}")
     if not latency.get("measured", False):

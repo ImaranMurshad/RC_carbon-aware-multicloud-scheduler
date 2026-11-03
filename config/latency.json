@@ -1,30 +1,38 @@
 {
-  "_description": "Measured HTTPS round-trip latency from the client machine.",
+  "_description": "TCP connect round-trip time from the client machine to each represented region.",
   "measured": true,
-  "measured_at": "2026-11-03T20:18:53.430230+00:00",
+  "method": "tcp_connect_443_to_aws_regional_endpoints_in_represented_cities",
+  "measured_at": "2026-11-03T21:23:42.756511+00:00",
   "latency_ms": {
-    "AWS": 33.7,
-    "AZURE": 53.8,
-    "GCP": 51.4
+    "AWS": 27.4,
+    "AZURE": 47.7,
+    "GCP": 46.1
   },
   "detail": {
     "AWS": {
-      "endpoint": "https://ec2.eu-west-1.amazonaws.com/ping",
-      "samples": 50,
-      "median_ms": 33.7,
-      "p95_ms": 50.4
+      "endpoint": "ec2.eu-west-1.amazonaws.com:443",
+      "samples": 60,
+      "median_ms": 27.4,
+      "p95_ms": 39.8
     },
     "AZURE": {
-      "endpoint": "https://germanywestcentral.api.cognitive.microsoft.com/",
-      "samples": 50,
-      "median_ms": 53.8,
-      "p95_ms": 70.6
+      "endpoint": "ec2.eu-central-1.amazonaws.com:443",
+      "samples": 60,
+      "median_ms": 47.7,
+      "p95_ms": 62.1
     },
     "GCP": {
-      "endpoint": "https://europe-west9-run.googleapis.com/",
-      "samples": 50,
-      "median_ms": 51.4,
-      "p95_ms": 72.6
+      "endpoint": "ec2.eu-west-3.amazonaws.com:443",
+      "samples": 60,
+      "median_ms": 46.1,
+      "p95_ms": 72.8
+    }
+  },
+  "info": {
+    "aws_instance_stockholm": {
+      "samples": 60,
+      "median_ms": 59.2,
+      "p95_ms": 73.3
     }
   }
 }
