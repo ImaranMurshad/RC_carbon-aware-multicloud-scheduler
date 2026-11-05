@@ -15,6 +15,37 @@ import http.server, urllib.request
 T = os.environ["WL_TYPE"]
 DUR = float(os.environ["WL_SECONDS"])
 MEM = int(os.environ.get("WL_ALLOC_MB", "0"))
+def _read(path):
+    try:
+        with open(path) as fh:
+            return fh.read()
+    except Exception:
+        return None
+
+
+def _cpu_seconds():
+    """CPU time used by this container (cgroup v2, then v1)."""
+    s = _read("/sys/fs/cgroup/cpu.stat")
+    if s:
+        for line in s.splitlines():
+            if line.startswith("usage_usec"):
+                return int(line.split()[1]) / 1e6
+    s = _read("/sys/fs/cgroup/cpuacct/cpuacct.usage")
+    if s:
+        return int(s.strip()) / 1e9
+    return None
+
+
+def _mem_peak_mb():
+    for path in ("/sys/fs/cgroup/memory.peak",
+                 "/sys/fs/cgroup/memory/memory.max_usage_in_bytes"):
+        s = _read(path)
+        if s and s.strip().isdigit():
+            return int(s.strip()) / (1024 * 1024)
+    return None
+
+
+cpu_start = _cpu_seconds()
 start = time.time()
 end = start + DUR
 out = {"type": T, "target_seconds": DUR}
@@ -76,6 +107,11 @@ else:
     raise SystemExit("unknown workload type " + T)
 
 wall = time.time() - start
+cpu_end = _cpu_seconds()
+cpu_s = None if (cpu_end is None or cpu_start is None) else cpu_end - cpu_start
+mem_mb = _mem_peak_mb()
+out["cpu_seconds"] = None if cpu_s is None else round(cpu_s, 3)
+out["mem_peak_mb"] = None if mem_mb is None else round(mem_mb, 1)
 out["wall_seconds"] = round(wall, 2)
 out["throughput_per_s"] = round(out["work_units"] / wall, 2)
 print("RESULT " + json.dumps(out), flush=True)

@@ -9,6 +9,7 @@ Examples (run from the project root):
 import argparse
 import csv
 import json
+import os
 import subprocess
 import sys
 import time
@@ -22,6 +23,11 @@ sys.path.insert(0, str(HERE.parent / "experiments"))
 
 import workloads  # noqa: E402
 import run_scheduler_experiments_v2 as sim  # noqa: E402
+
+# kubectl on the EC2 host would otherwise fall back to the root-only k3s file.
+_KUBECONFIG = Path.home() / ".kube" / "config"
+if "KUBECONFIG" not in os.environ and _KUBECONFIG.exists():
+    os.environ["KUBECONFIG"] = str(_KUBECONFIG)
 
 PROJECT_ROOT = HERE.parents[1]
 CLUSTERS_FILE = PROJECT_ROOT / "config" / "clusters.json"
@@ -40,6 +46,7 @@ COLUMNS = [
     "submitted_at_utc", "total_seconds", "startup_seconds", "wall_seconds",
     "work_units", "throughput_per_s", "service_latency_p50_ms",
     "service_latency_p95_ms", "network_latency_ms", "response_latency_ms",
+    "cpu_seconds", "mem_peak_mb",
     "sla_breach", "peak_cpu_m", "peak_mem_mi", "status", "error",
 ]
 
@@ -139,7 +146,8 @@ def run_workload(provider, wl_type, seconds=30, strategy="manual",
         res = json.loads(line[len("RESULT "):])
         rec.update({k: res.get(k, "") for k in (
             "wall_seconds", "work_units", "throughput_per_s",
-            "service_latency_p50_ms", "service_latency_p95_ms")})
+            "service_latency_p50_ms", "service_latency_p95_ms",
+            "cpu_seconds", "mem_peak_mb")})
         rec["status"] = "ok"
     except Exception as exc:  # recorded, not hidden
         rec["error"] = str(exc)[:300]
@@ -172,7 +180,7 @@ def show(rec):
         return
     keys = ["provider", "workload_type", "status", "total_seconds",
             "startup_seconds", "throughput_per_s", "response_latency_ms",
-            "sla_breach", "peak_cpu_m", "peak_mem_mi", "error"]
+            "sla_breach", "peak_cpu_m", "peak_mem_mi", "cpu_seconds", "error"]
     print("  " + "  ".join(f"{k}={rec.get(k, '')}" for k in keys))
 
 
