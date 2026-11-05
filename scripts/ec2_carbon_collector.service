@@ -1,0 +1,16 @@
+[Unit]
+Description=Electricity Maps carbon collector (thesis)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/RC_carbon-aware-multicloud-scheduler
+EnvironmentFile=/home/ubuntu/.carbon.env
+ExecStart=/home/ubuntu/RC_carbon-aware-multicloud-scheduler/.venv/bin/python -u scripts/collect_carbon_standalone.py
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
