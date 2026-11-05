@@ -12,7 +12,9 @@ What it does
     interpolation and labels those rows source="interpolated", is_estimated=True.
     The ML scripts assume consecutive hourly rows, so a gap would silently
     corrupt the lag features.
-  * Refuses to append past a larger gap and tells you where it is.
+  * Leaves larger gaps UNFILLED (real missing data is not invented) but keeps
+    appending the data after them. The ML scripts skip any row whose lags or
+    target would span a gap.
   * Saves a backup copy first.
 
 Run from the project root:
@@ -76,15 +78,17 @@ def extend_zone(history_zone, new_zone, zone, max_gap):
     for row in new_zone.itertuples(index=False):
         gap = int((row.datetime - prev_time) / pd.Timedelta(hours=1)) - 1
         if gap > max_gap:
-            notes.append(f"{zone}: gap of {gap} h after {prev_time} - stopped "
-                         f"(larger than --max-gap {max_gap}); later data NOT appended")
-            break
-        for i in range(1, gap + 1):                   # fill the small gap
+            notes.append(f"{zone}: gap of {gap} h after {prev_time} left UNFILLED "
+                         f"(> --max-gap {max_gap}); data after it is still appended")
+            fill = 0
+        else:
+            fill = gap
+            if gap:
+                notes.append(f"{zone}: interpolated {gap} h between {prev_time} and {row.datetime}")
+        for i in range(1, fill + 1):                  # fill the small gap
             t = prev_time + pd.Timedelta(hours=i)
             v = prev_val + (row.carbon_intensity - prev_val) * i / (gap + 1)
             appended.append((t, round(v, 1), True, "interpolated"))
-        if gap:
-            notes.append(f"{zone}: interpolated {gap} h between {prev_time} and {row.datetime}")
         appended.append((row.datetime, row.carbon_intensity,
                          bool(row.is_estimated), SOURCE_LABEL))
         prev_time, prev_val = row.datetime, row.carbon_intensity
