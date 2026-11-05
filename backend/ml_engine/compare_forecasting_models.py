@@ -156,6 +156,18 @@ def prepare_zone_data(df, zone):
         data["datetime"].dt.day_of_week
     )
 
+    # Keep only rows whose three lags and the target are exactly 1 hour apart,
+    # so gaps in the collected data cannot create wrong features or targets.
+    step = pd.Timedelta(hours=1)
+    dt = data["datetime"]
+    contiguous = (
+        (dt.shift(-1) - dt == step)
+        & (dt - dt.shift(1) == step)
+        & (dt.shift(1) - dt.shift(2) == step)
+        & (dt.shift(2) - dt.shift(3) == step)
+    )
+    data = data[contiguous].copy()
+
     data = data.dropna(
         subset=ALL_FEATURES + [
             "target",

@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import joblib
@@ -185,6 +184,18 @@ def prepare_zone_data(df, zone):
     )
 
     # Remove rows without sufficient history or target.
+    # Keep only rows whose three lags and the target are exactly 1 hour apart,
+    # so gaps in the collected data cannot create wrong features or targets.
+    step = pd.Timedelta(hours=1)
+    dt = zone_df["datetime"]
+    contiguous = (
+        (dt.shift(-1) - dt == step)
+        & (dt - dt.shift(1) == step)
+        & (dt.shift(1) - dt.shift(2) == step)
+        & (dt.shift(2) - dt.shift(3) == step)
+    )
+    zone_df = zone_df[contiguous].copy()
+
     zone_df = zone_df.dropna(
         subset=FEATURES + [
             "target",

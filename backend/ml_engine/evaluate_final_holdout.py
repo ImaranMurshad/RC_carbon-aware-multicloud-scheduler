@@ -53,7 +53,17 @@ def evaluate_zone(zone, group):
     group["target_is_estimated"] = group["is_estimated"].shift(-1)
 
     # Match the feature-engineering rows used in rolling validation.
-    usable = group.iloc[3:-1].copy().reset_index(drop=True)
+    # Rows whose three lags and next-hour target are all exactly 1 h apart
+    # (identical to iloc[3:-1] when there are no gaps).
+    step = pd.Timedelta(hours=1)
+    dt = group["datetime"]
+    contiguous = (
+        (dt.shift(-1) - dt == step)
+        & (dt - dt.shift(1) == step)
+        & (dt.shift(1) - dt.shift(2) == step)
+        & (dt.shift(2) - dt.shift(3) == step)
+    )
+    usable = group[contiguous].copy().reset_index(drop=True)
 
     usable["prediction"] = usable["carbon_intensity"]
 
