@@ -73,7 +73,7 @@ WEB_SLA_MS = _web_sla_ms()
 WORKLOAD_MIX = [
     {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": WEB_SLA_MS},
     {"type": "web",        "cpu": 250,  "mem": 256,  "sla_ms": WEB_SLA_MS},
-    {"type": "cpu_bound",  "cpu": 1000, "mem": 512,  "sla_ms": 150.0},
+    {"type": "cpu_bound",  "cpu": 750,  "mem": 512,  "sla_ms": 150.0},
     {"type": "mem_bound",  "cpu": 500,  "mem": 1500, "sla_ms": 150.0},
     {"type": "background", "cpu": 250,  "mem": 256,  "sla_ms": 500.0},
     {"type": "background", "cpu": 250,  "mem": 256,  "sla_ms": 500.0},
