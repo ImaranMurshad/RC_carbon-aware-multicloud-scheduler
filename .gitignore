@@ -48,3 +48,4 @@ results/eda/interactive_carbon_trends.html
 .coverage
 htmlcov/
 .pytest_cache/results/live/.rr_state
+results/live/.rr_state
